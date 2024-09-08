@@ -75,13 +75,6 @@ function bsres() {
       document.head.appendChild(bscss);
     }
 
-    if (!document.querySelector('script[src*="bootstrap.bundle.min.js"]')) {
-      const bsjs = document.createElement("script");
-      bsjs.src =
-        "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js";
-      document.body.appendChild(bsjs);
-    }
-
     if (!document.querySelector('link[href*="bootstrap-icons"]')) {
       const bsicons = document.createElement("link");
       bsicons.rel = "stylesheet";
