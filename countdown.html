@@ -2,22 +2,23 @@
 <html lang="en" id="theme-stylesheet" data-bs-theme="dark">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KVT Profile - Countdown Timer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>KVT Profile</title>
     <link rel="icon" type="image/png" href="./images/luffy.png">
 </head>
 
-<body class="d-flex justify-content-center align-items-center vh-100 bg-light text-dark">
-    <div class="container text-center">
-        <div class="d-flex justify-content-around align-items-center mb-4">
-            <h1 class="fw-bold">KVT Profile</h1>
-            <button type="button" class="btn btn-outline-secondary" id="theme-toggler" onclick="toggleTheme()">
+<body>
+    <div class="container">
+        <!-- Existing Profile Header and Theme Toggle Button -->
+        <div class="d-flex justify-content-around align-items-center m-4">
+            <div class="fw-bold align-self-center h1">KVT Profile</div>
+            <button type="button" class="btn btn-outline" id="theme-toggler" onclick="toggleTheme()">
                 <i class="bi bi-moon-fill"></i>
             </button>
         </div>
 
-        <!-- Countdown Card -->
+        <!-- Countdown Timer Card -->
         <div class="card shadow-lg mb-5">
             <div class="card-body">
                 <h2 class="card-title">Countdown to Next Event</h2>
@@ -27,11 +28,12 @@
 
         <!-- GitHub Badge -->
         <div class="position-fixed bottom-0 start-50 translate-middle-x shadow">
-            <a href="https://github.com/thekvt" target="_blank" class="badge bg-success">
-                TheKVT
+            <a href="https://github.com/thekvt" target="_blank">
+                <span class="badge bg-success badge-left">TheKVT</span>
+                <span class="badge bg-secondary badge-right">&lt;/&gt;</span>
             </a>
-            <span class="badge bg-secondary">&lt;/&gt;</span>
         </div>
+        <br />
     </div>
 
     <script>
