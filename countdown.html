@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" id="theme-stylesheet" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KVT Profile - Countdown Timer</title>
+    <link rel="icon" type="image/png" href="./images/luffy.png">
+</head>
+
+<body class="d-flex justify-content-center align-items-center vh-100 bg-light text-dark">
+    <div class="container text-center">
+        <div class="d-flex justify-content-around align-items-center mb-4">
+            <h1 class="fw-bold">KVT Profile</h1>
+            <button type="button" class="btn btn-outline-secondary" id="theme-toggler" onclick="toggleTheme()">
+                <i class="bi bi-moon-fill"></i>
+            </button>
+        </div>
+
+        <!-- Countdown Card -->
+        <div class="card shadow-lg mb-5">
+            <div class="card-body">
+                <h2 class="card-title">Countdown to Next Event</h2>
+                <div id="countdown" class="display-6">Loading...</div>
+            </div>
+        </div>
+
+        <!-- GitHub Badge -->
+        <div class="position-fixed bottom-0 start-50 translate-middle-x shadow">
+            <a href="https://github.com/thekvt" target="_blank" class="badge bg-success">
+                TheKVT
+            </a>
+            <span class="badge bg-secondary">&lt;/&gt;</span>
+        </div>
+    </div>
+
+    <script>
+        function getNextWeekTarget() {
+            const now = new Date();
+            const daysUntilNextWeek = 7 - now.getDay();
+            const nextWeek = new Date(now.getTime() + daysUntilNextWeek * 24 * 60 * 60 * 1000);
+            nextWeek.setHours(19, 40, 0, 0);
+            return nextWeek;
+        }
+
+        function updateCountdown() {
+            const now = new Date();
+            const target = getNextWeekTarget();
+            const difference = target - now;
+
+            if (difference > 0) {
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+                document.getElementById('countdown').innerHTML =
+                    `${days}d ${hours}h ${minutes}m ${seconds}s`;
+            } else {
+                document.getElementById('countdown').innerHTML = "Countdown finished!";
+            }
+        }
+
+        setInterval(updateCountdown, 1000);
+        updateCountdown(); // Initial call to avoid delay
+
+        // Theme toggling
+        function toggleTheme() {
+            const root = document.getElementById('theme-stylesheet');
+            const currentTheme = root.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            root.setAttribute('data-bs-theme', newTheme);
+            document.body.classList.toggle('bg-light', newTheme === 'light');
+            document.body.classList.toggle('bg-dark', newTheme === 'dark');
+            document.body.classList.toggle('text-dark', newTheme === 'light');
+            document.body.classList.toggle('text-light', newTheme === 'dark');
+        }
+    </script>
+
+    <script src="src/main.js"></script>
+</body>
+
+</html>
