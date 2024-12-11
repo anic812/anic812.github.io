@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixeldrain List Extractor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <div class="container mx-auto px-4 py-8 max-w-2xl">
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h1 class="text-2xl font-bold mb-4 text-center text-blue-600">
+                <i class="fas fa-cloud-download-alt mr-2"></i>Pixeldrain List Extractor
+            </h1>
+            
+            <div class="mb-4">
+                <label for="listId" class="block text-sm font-medium text-gray-700">Pixeldrain List ID</label>
+                <div class="flex">
+                    <input 
+                        type="text" 
+                        id="listId" 
+                        placeholder="Enter list ID (e.g., abc123)" 
+                        class="flex-grow mr-2 p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                    <button 
+                        id="extractBtn" 
+                        class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300"
+                    >
+                        Extract Links
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Find the list ID in the Pixeldrain list URL
+                </p>
+            </div>
+
+            <div id="statusMessage" class="mb-4 text-center"></div>
+
+            <div id="resultsContainer" class="space-y-4">
+                <!-- Extracted list items will be displayed here -->
+            </div>
+        </div>
+
+        <div class="mt-4 text-center text-gray-600">
+            <p class="text-sm">
+                <i class="fas fa-shield-alt mr-1"></i>Rate Limited: Max 50 requests/hour
+            </p>
+        </div>
+    </div>
+
+    <script>
+    // Configuration
+    const BASE_URL = 'https://pixeldrain.com/api';
+    const SITE_URL = 'https://pixeldrain.com';
+    const API_KEY = ''; // Optional: Add your Pixeldrain API key here
+
+    // DOM Elements
+    const listIdInput = document.getElementById('listId');
+    const extractBtn = document.getElementById('extractBtn');
+    const statusMessage = document.getElementById('statusMessage');
+    const resultsContainer = document.getElementById('resultsContainer');
+
+    // Rate Limiting
+    let lastRequestTime = 0;
+    const RATE_LIMIT_DELAY = 2000; // 2 seconds between requests
+    const MAX_REQUESTS_PER_HOUR = 50;
+    let requestCount = 0;
+    let lastResetTime = Date.now();
+
+    function checkRateLimit() {
+        const now = Date.now();
+        const timeSinceReset = (now - lastResetTime) / 1000;
+
+        // Reset counter if an hour has passed
+        if (timeSinceReset >= 3600) {
+            requestCount = 0;
+            lastResetTime = now;
+        }
+
+        // Check if max requests reached
+        if (requestCount >= MAX_REQUESTS_PER_HOUR) {
+            const timeUntilReset = Math.ceil((3600 - timeSinceReset) / 60);
+            showStatus(`⚠️ Rate limit exceeded. Try again in ${timeUntilReset} minutes.`, 'text-yellow-600');
+            return false;
+        }
+
+        // Check time between requests
+        const timeSinceLastRequest = now - lastRequestTime;
+        if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
+            return false;
+        }
+
+        return true;
+    }
+
+    function showStatus(message, className = 'text-blue-600') {
+        statusMessage.innerHTML = `<p class="font-semibold ${className}">${message}</p>`;
+    }
+
+    function formatFileInfo(fileData) {
+        const sizeInMB = (fileData.size / (1024 * 1024)).toFixed(2);
+        return `
+            <div class="bg-gray-50 p-3 rounded-md border">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold"><i class="fas fa-file mr-2"></i>${fileData.name}</p>
+                        <p class="text-sm text-gray-600">
+                            <i class="fas fa-weight mr-1"></i>Size: ${sizeInMB} MB
+                        </p>
+                    </div>
+                    <a 
+                        href="https://pixeldrain.com/api/file/${fileData.id}?download" 
+                        target="_blank" 
+                        class="bg-green-500 text-white px-3 py-1 rounded-md text-sm hover:bg-green-600 transition"
+                    >
+                        <i class="fas fa-download mr-1"></i>Download
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+
+    async function extractListLinks() {
+        // Validate input
+        const listId = listIdInput.value.trim();
+        if (!listId) {
+            showStatus('❌ Please enter a list ID', 'text-red-600');
+            return;
+        }
+
+        // Check rate limits
+        if (!checkRateLimit()) {
+            return;
+        }
+
+        // Update request tracking
+        lastRequestTime = Date.now();
+        requestCount++;
+
+        // Clear previous results
+        resultsContainer.innerHTML = '';
+        showStatus('🔄 Fetching list information...', 'text-blue-600');
+
+        try {
+            // Prepare API request
+            const headers = API_KEY 
+                ? { 'Authorization': `Basic ${btoa(`:${API_KEY}`)}` }
+                : {};
+
+            const response = await fetch(`${BASE_URL}/list/${listId}`, { headers });
+            
+            if (!response.ok) {
+                if (response.status === 404) {
+                    showStatus('❌ List not found. Please check the ID.', 'text-red-600');
+                } else {
+                    showStatus('❌ Failed to fetch list information.', 'text-red-600');
+                }
+                return;
+            }
+
+            const listInfo = await response.json();
+
+            // Display list title
+            showStatus(`📋 List: ${listInfo.title || 'Untitled List'}`, 'text-green-600');
+
+            // Render file links
+            const fileLinks = listInfo.files.map(formatFileInfo).join('');
+            resultsContainer.innerHTML = fileLinks;
+
+        } catch (error) {
+            console.error('Error:', error);
+            showStatus('❌ An unexpected error occurred.', 'text-red-600');
+        }
+    }
+
+    // Event Listeners
+    extractBtn.addEventListener('click', extractListLinks);
+    listIdInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            extractListLinks();
+        }
+    });
+    </script>
+</body>
+</html>
